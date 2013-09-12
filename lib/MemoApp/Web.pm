@@ -4,8 +4,8 @@ use strict;
 use warnings;
 use utf8;
 use Kossy;
-use Kossy::Validator;
 use MemoApp::DB;
+use Data::Dumper;
 
 sub connection {
   my $self  = shift;  
@@ -24,9 +24,6 @@ get '/' => sub {
 
     my $db = &connection;
 
-    print "aaaaaaaaaaaaaaaaaaaa";
-    print "---".$db->all()."---";
-    
     $c->stash->{site_name} = __PACKAGE__;
     my $rows = $db->all();
 
@@ -35,27 +32,30 @@ get '/' => sub {
 
 post '/p' => sub {
   my ( $self, $c) = @_;
-  my $result = Kossy::Validator->check($c, [
+  
+  my $db = &connection;
+  
+  my $result = $c->req->validator([
     'memo' => {
       rule => [
         ['NOT_NULL', 'ENTER SOMETHING!!!'],
       ], 
     }
   ]);
+  my $messages = ['success!'];
   if($result->has_error) {
-    return $c->render_json({
-      error => 1, 
-      messages => $result->errors
-    });
+    $messages = $result->messages
   }
   else {
-    my $teng = &connection;
-
-    $teng->insert('memos' => {
-      'content' => $result->valid->get('tbox')
+    $db->insert('memos' => {
+      'content' => $result->valid->get('memo')
     });
-    $c->render('index.tx');
-  }
+  } 
+  
+  my $rows = $db->all();
+  $c->render('index.tx', {
+    rows=>$rows, messages => $messages
+  });
  
 };
 
