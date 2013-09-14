@@ -10,8 +10,16 @@ use Data::Dumper;
 sub connection {
   my $self  = shift;  
 
+  my $conf_file = 'conf.perl';
+  my $conf = do $conf_file or die "$!$@";
+
+  my $db_conf = $conf->{development};
   my $teng = MemoApp::DB->new(
-    connect_info=>['dbi:SQLite:memo.db',  '', '']
+    connect_info=>[
+      "dbi:$db_conf->{database}:$db_conf->{dbname}",
+      $db_conf->{user} ,
+      $db_conf->{passwd}
+    ]
   );
   
   $teng->create_table();

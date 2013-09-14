@@ -9,15 +9,6 @@ use MemoApp::Web;
 
 my $root_dir = File::Basename::dirname(__FILE__);
 
-#
-my $abs = File::Spec->rel2abs($root_dir);
-print $abs."\n";
-
-my $conf = YAML::Syck::LoadFile($abs."/sample.yaml");
-
-print $conf->{development}->{database};
-#
-
 my $app = MemoApp::Web->psgi($root_dir);
 builder {
     enable 'ReverseProxy';

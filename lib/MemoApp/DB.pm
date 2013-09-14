@@ -5,10 +5,10 @@ use parent 'Teng';
 sub create_table {
   my $self = shift;
   $self->do(q{
-    CREATE TABLE IF NOT EXISTS memos (
-      id INTEGER NOT NULL, 
-      content TEXT NOT NULL, 
-      PRIMARY KEY(id)
+    CREATE TABLE IF NOT EXISTS `memos` (
+      `id` INTEGER NOT NULL, 
+      `content` TEXT NOT NULL, 
+      PRIMARY KEY(`id`)
     )
   });
 }
