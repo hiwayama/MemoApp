@@ -1,23 +1,21 @@
 : cascade base
 : around content -> {
-<h1><: $greeting :> <: $c.stash.site_name :></h1>
-<p>
-  Use this document as a way to quick start any new project.<br />
-  All you get is this message and a barebones HTML document.
-</p>
 <div id="message">
   : for $messages -> $message {
   <span><small><: $message :></small></span><br />
   : }
 </div>
-<form method="post" action="<: $c.req.uri_for('/p') :>">
-  <input type="text" name="memo" value="" /><br />
-  <button type="submit" class="btn primary">Send</button>
-</form>
-<ul>
-  : for $rows -> $row {
-  <li><: $row.content :></li>
-  : }
-</ul>
+<table class="table table-condensed">
+  <tbody>
+    : for $rows -> $row {
+    <tr><td><: $row.content :></td></tr>
+    : }
+  <tr><td>
+    <form method="post" action="<: $c.req.uri_for('/p') :>">
+      <input type="text" name="memo" value="" />
+      <button type="submit" class="btn primary">Send</button>
+    </form>
+  </td></tr>
+  </tbody>
+</table>
 : }
-

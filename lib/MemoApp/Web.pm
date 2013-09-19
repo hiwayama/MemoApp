@@ -13,7 +13,7 @@ sub connection {
   my $conf_file = 'conf.perl';
   my $conf = do $conf_file or die "$!$@";
 
-  my $db_conf = $conf->{development};
+  my $db_conf = $conf->{production};
   my $teng = MemoApp::DB->new(
     connect_info=>[
       "dbi:$db_conf->{database}:$db_conf->{dbname}",
