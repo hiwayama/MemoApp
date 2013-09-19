@@ -7,41 +7,45 @@ use Kossy;
 use MemoApp::DB;
 use Data::Dumper;
 
-sub connection {
-  my $self  = shift;  
+filter 'connect' => sub {
+  my $app  = shift;
 
   my $conf_file = 'conf.perl';
-  my $conf = do $conf_file or die "$!$@";
 
-  my $db_conf = $conf->{production};
-  my $teng = MemoApp::DB->new(
-    connect_info=>[
-      "dbi:$db_conf->{database}:$db_conf->{dbname}",
-      $db_conf->{user} ,
-      $db_conf->{passwd}
-    ]
-  );
-  
-  $teng->create_table();
+  sub {
+    my ($self, $c) = @_;
+    my $conf = do $conf_file or die "$!$@";
 
-  return $teng;
-}
+    my $db_conf = $conf->{production};
+    my $db = MemoApp::DB->new(
+      connect_info=>[
+        "dbi:$db_conf->{database}:$db_conf->{dbname}",
+        $db_conf->{user} ,
+        $db_conf->{passwd}
+      ]
+    );
+    
+    $c->stash->{db} = $db;
 
-get '/' => sub {
-    my ( $self, $c )  = @_;
-
-    my $db = &connection;
-
-    $c->stash->{site_name} = __PACKAGE__;
-    my $rows = $db->all();
-
-    $c->render('index.tx', { rows => $rows});
+    $app->($self, $c);
+  }  
 };
 
-post '/p' => sub {
+get '/:page' => [qw/connect/] => sub {
+    my ( $self, $c )  = @_;
+
+    my $page = $c->args->{page};
+
+    $c->stash->{site_name} = __PACKAGE__;
+    my $db = $c->stash->{db};
+    my $rows = $db->all($page);
+    $c->render('index.tx', 
+      { rows => $rows , page => $page}
+    );
+};
+
+post '/p' => [qw/connect/] => sub {
   my ( $self, $c) = @_;
-  
-  my $db = &connection;
   
   my $result = $c->req->validator([
     'memo' => {
@@ -50,6 +54,8 @@ post '/p' => sub {
       ], 
     }
   ]);
+
+  my $db = $c->stash->{db};
   my $messages = ['success!'];
   if($result->has_error) {
     $messages = $result->messages
@@ -61,8 +67,9 @@ post '/p' => sub {
   } 
   
   my $rows = $db->all();
+
   $c->render('index.tx', {
-    rows=>$rows, messages => $messages
+    rows=>$rows, messages => $messages, page=>0
   });
  
 };

@@ -15,8 +15,14 @@ sub create_table {
 
 # arrayに変換
 sub all {
-  my $self = shift;
-  return $self->search('memos', {})->all;
+  my ($self, $page) = @_;
+  #my $page //= 0; 
+
+  my $limit = 10;
+  
+  return $self->search('memos', {}, 
+      {limit=>$limit, offset=>$page*$limit}
+    )->all;
 }
 
 1;
