@@ -16,12 +16,15 @@ sub create_table {
 # arrayに変換
 sub all {
   my ($self, $page) = @_;
-  #my $page //= 0; 
+  
+  if($page<0){
+    return ();
+  }
 
   my $limit = 10;
   
   return $self->search('memos', {}, 
-      {limit=>$limit, offset=>$page*$limit}
+      {limit=>$limit, offset=>$page*$limit, order_by => 'id'}
     )->all;
 }
 

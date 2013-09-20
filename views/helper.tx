@@ -1,5 +1,6 @@
 :macro pager ->$pager{
 : my $attr = "class=\"disabled\"";
+:# my $a = qq/class="disabled"/;
 <div class="pagination">
   <ul>
     <li><a href="./<:$page-1:>">Prev</a></li>
@@ -10,3 +11,4 @@
   </ul>
 </div>
 : }
+

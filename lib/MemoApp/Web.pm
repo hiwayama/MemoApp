@@ -31,6 +31,14 @@ filter 'connect' => sub {
   }  
 };
 
+get '/' => [qw/connect/] =>sub {
+  my ( $self, $c )  = @_;
+  
+  $c->stash->{db}->create_table;
+
+  $c->redirect('/0');
+};
+
 get '/:page' => [qw/connect/] => sub {
     my ( $self, $c )  = @_;
 

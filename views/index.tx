@@ -1,10 +1,12 @@
-: cascade base with pager
+: cascade base with helper
 : around content -> {
-<div id="message">
+: if($messages) {
+<div class="alert">
   : for $messages -> $message {
-  <span><small><: $message :></small></span><br />
+  <: $message :>
   : }
 </div>
+: }
 <form method="post" action="<: $c.req.uri_for('/p') :>" class="navbar-form pull-left">
   <input type="text" name="memo" class="span3" value="" />
   <button type="submit" class="btn">Send</button>
