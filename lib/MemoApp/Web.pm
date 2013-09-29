@@ -52,12 +52,21 @@ get '/:page' => [qw/connect/] => sub {
     );
 };
 
-get '/d/:id' => [qw/connect/] => sub {
+post '/d' => [qw/connect/] => sub {
   my ($self, $c) = @_;
-  my $id = $c->args->{id};
-  
+  my $result = $c->req->validator([
+    'id' => {
+      rule => [
+        ['UINT', 'ERROR!!!'], 
+      ], 
+    }
+  ]);
+
+  my $id = $result->valid->get('id');  
   my $db = $c->stash->{db};
-   
+
+  print STDOUT Dumper($result->valid);
+  print STDOUT "----- $id -----\n";
   $db->delete('memos', {id => $id});
 
   $c->redirect('/0'); 

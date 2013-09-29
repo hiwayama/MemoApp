@@ -1,5 +1,14 @@
 : cascade base with helper
 : around content -> {
+<script>  
+  function check() {
+    if(window.confirm('削除してもよろしいですか？')){
+      return true;
+    } else {
+      return false;
+    }
+  } 
+</script>
 : if($messages) {
 <div class="alert">
   : for $messages -> $message {
@@ -14,7 +23,10 @@
 <table class="table table-condensed">
   <tbody>
     : for $rows -> $row {
-    <tr><td><: $row.content :></td></tr>
+    <tr>
+      <td><: $row.content :></td>
+      <td><form method="POST" action="<: $c.req.uri_for('/d'):>" onSubmit="return check()"><input type="hidden" name="id" value="<: $row.id :>" /><button type="submit" class="btn"><i class="icon-remove"></i></button></form></td>
+    </tr>
     : }
   </tbody>
 </table>
