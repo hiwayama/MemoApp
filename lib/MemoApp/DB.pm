@@ -6,10 +6,10 @@ sub create_table {
   my $self = shift;
   $self->do(q{
     CREATE TABLE IF NOT EXISTS `memos` (
-      `id` INTEGER NOT NULL AUTO_INCREMENT, 
+      `id` INT NOT NULL AUTO_INCREMENT, 
       `content` TEXT NOT NULL,
-      `create_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-      `update_at` TIMESTAMP, 
+      `created_at` TIMESTAMP NOT NULL, 
+      `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
       PRIMARY KEY(`id`)
     )
   });

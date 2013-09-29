@@ -5,6 +5,7 @@ use warnings;
 use utf8;
 use Kossy;
 use MemoApp::DB;
+use DateTime;
 use Data::Dumper;
 
 filter 'connect' => sub {
@@ -139,7 +140,8 @@ post '/p' => [qw/connect/] => sub {
     }
     else {
       $db->insert('memos' => {
-        'content' => $result->valid->get('memo')
+        'content' => $result->valid->get('memo'), 
+        'created_at' => DateTime->now(time_zone => 'local')
       });
       ["success!"];  
     }
