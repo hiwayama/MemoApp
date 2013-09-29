@@ -7,7 +7,9 @@ sub create_table {
   $self->do(q{
     CREATE TABLE IF NOT EXISTS `memos` (
       `id` INTEGER NOT NULL AUTO_INCREMENT, 
-      `content` TEXT NOT NULL, 
+      `content` TEXT NOT NULL,
+      `create_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+      `update_at` TIMESTAMP, 
       PRIMARY KEY(`id`)
     )
   });

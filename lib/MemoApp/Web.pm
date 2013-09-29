@@ -52,6 +52,17 @@ get '/:page' => [qw/connect/] => sub {
     );
 };
 
+get '/d/:id' => [qw/connect/] => sub {
+  my ($self, $c) = @_;
+  my $id = $c->args->{id};
+  
+  my $db = $c->stash->{db};
+   
+  $db->delete('memos', {id => $id});
+
+  $c->redirect('/0'); 
+};
+
 post '/p' => [qw/connect/] => sub {
   my ( $self, $c) = @_;
   
@@ -64,16 +75,17 @@ post '/p' => [qw/connect/] => sub {
   ]);
 
   my $db = $c->stash->{db};
-  my $messages = ['success!'];
-  if($result->has_error) {
-    $messages = $result->messages
-  }
-  else {
-    $db->insert('memos' => {
-      'content' => $result->valid->get('memo')
-    });
-  } 
-  
+  my $messages =  do {
+    if($result->has_error) {
+      $result->messages
+    }
+    else {
+      $db->insert('memos' => {
+        'content' => $result->valid->get('memo')
+      });
+      ["success!"];  
+    }
+  };
   my $rows = $db->all();
 
   $c->render('index.tx', {
