@@ -1,0 +1,8 @@
+: cascade base 
+: around content -> {
+<form method="post" action="/e">
+  <input type="hidden" name="id" value="<: $row.id :>" />
+  <input type="text" name="memo" class="span3" value="<: $row.content :>" />
+  <button type="submit" class="btn">編集</button>
+</form>
+: }

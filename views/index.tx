@@ -25,7 +25,8 @@
     : for $rows -> $row {
     <tr>
       <td><: $row.content :></td>
-      <td><form method="POST" action="<: $c.req.uri_for('/d'):>" onSubmit="return check()"><input type="hidden" name="id" value="<: $row.id :>" /><button type="submit" class="btn"><i class="icon-remove"></i></button></form></td>
+      <td><a class="btn" href="/todo/<: $row.id :>"><i class="icon-cog"></i></a></td>
+      <td><form method="POST" action="<: $c.req.uri_for('/d'):>" onSubmit="return check()"><input type="hidden" name="id" value="<: $row.id :>" /><button type="submit" class="btn" onSubmit="return check()"><i class="icon-remove"></i></button></form></td>
     </tr>
     : }
   </tbody>
