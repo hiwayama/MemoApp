@@ -3,11 +3,11 @@
 :# my $a = qq/class="disabled"/;
 <div class="pagination">
   <ul>
-    <li><a href="./<:$page-1:>">Prev</a></li>
+    <li><a href="./?page=<:$page-1:>">Prev</a></li>
     <li><a class="disabled">・</a></li>
     <li><a class="disabled">・</a></li>
     <li><a class="disabled">・</a></li>
-    <li><a href="./<:$page+1:>">Next</a></li>
+    <li><a href="./?page=<:$page+1:>">Next</a></li>
   </ul>
 </div>
 : }

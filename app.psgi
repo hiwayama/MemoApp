@@ -3,7 +3,6 @@ use lib "$FindBin::Bin/extlib/lib/perl5";
 use lib "$FindBin::Bin/lib";
 use File::Basename;
 use File::Spec;
-use YAML::Syck;
 use Plack::Builder;
 use MemoApp::Web;
 

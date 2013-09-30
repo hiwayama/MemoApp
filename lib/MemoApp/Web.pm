@@ -17,8 +17,10 @@ filter 'connect' => sub {
     my ($self, $c) = @_;
     my $conf = do $conf_file or die "$!$@";
 
+    $c->stash->{site_name} = __PACKAGE__;
+    
     my $db_conf = $conf->{production};
-    my $db = MemoApp::DB->new(
+    $c->stash->{db} ||= MemoApp::DB->new(
       connect_info=>[
         "dbi:$db_conf->{database}:$db_conf->{dbname}",
         $db_conf->{user} ,
@@ -26,21 +28,52 @@ filter 'connect' => sub {
       ]
     );
     
-    $c->stash->{db} = $db;
-
     $app->($self, $c);
   }  
 };
 
-get '/' => [qw/connect/] =>sub {
-  my ( $self, $c )  = @_;
-  
-  $c->stash->{db}->create_table;
+filter 'todo_list' => sub {
+  my $app = shift;
 
-  $c->redirect('/0');
+  sub {
+    my ($self, $c) = @_;
+
+    my $page = $c->req->param("page") || 1;
+
+    my $db = $c->stash->{db};
+    $c->stash->{page} = $page;
+    $c->stash->{rows} = $db->all($page-1);
+
+    $app->($self, $c);
+  }
 };
 
-get '/todo/:id' =>[qw/connect/] => sub {
+get '/todos/' => [qw/connect todo_list/] => sub {
+  my ( $self, $c )  = @_;
+
+  my $rows = $c->stash->{rows};
+  my $page = $c->stash->{page};
+  $c->render('index.tx', 
+    { rows => $rows , page => $page}
+  );
+};
+get '/todos.json' => [qw/connect todo_list/] => sub {
+  my ( $self, $c )  = @_;
+
+  my $rows = $c->stash->{rows};
+
+  my @todos = map {
+    id    => $_->id, 
+    name  => $_->name,
+    content   => $_->content, 
+    is_done   => $_->is_done, 
+    deadline  => $_->deadline, 
+  }, @$rows;
+
+  $c->render_json(\@todos);
+};
+
+get '/todos/:id' =>[qw/connect/] => sub {
   my ( $self, $c )  = @_;
   
   my $db = $c->stash->{db};
@@ -49,56 +82,34 @@ get '/todo/:id' =>[qw/connect/] => sub {
 
   # TODO idがinvalidだったら戻らせる
   
-  my $row = $db->single('memos', {id => $id});
+  my $row = $db->single('todos', {id => $id});
 
   $c->render('detail.tx',
     { row => $row } 
   );
 };
 
-get '/:page' => [qw/connect/] => sub {
-  my ( $self, $c )  = @_;
 
-  my $page = $c->args->{page};
-
-  $c->stash->{site_name} = __PACKAGE__;
-  my $db = $c->stash->{db};
-  my $rows = $db->all($page);
-  $c->render('index.tx', 
-    { rows => $rows , page => $page}
-  );
-};
-
-post '/d' => [qw/connect/] => sub {
+post '/todos/:id/delete' => [qw/connect/] => sub {
   my ($self, $c) = @_;
-  my $result = $c->req->validator([
-    'id' => {
-      rule => [
-        ['UINT', 'ERROR!!!'], 
-      ], 
-    }
-  ]);
 
-  my $id = $result->valid->get('id');  
+  my $id = $c->args->{'id'};  
   my $db = $c->stash->{db};
 
-  $db->delete('memos', {id => $id});
+  $db->delete('todos', {id => $id});
 
-  $c->redirect('/0'); 
+  $c->redirect('/todos/'); 
 };
 
-post '/e' => [qw/connect/] => sub {
+post '/todos/:id/update' => [qw/connect/] => sub {
   my ( $self, $c) = @_;
-  
+ 
+  my $id = $c->args->{id};
+
   my $result = $c->req->validator([
-    'memo' => {
+    'name' => {
       rule => [
         ['NOT_NULL', 'ENTER SOMETHING!!!'],
-      ], 
-    }, 
-    'id' => {
-      rule => [
-        ['UINT', 'ERROR!!!'], 
       ], 
     }
   ]);
@@ -109,24 +120,23 @@ post '/e' => [qw/connect/] => sub {
       $result->messages
     }
     else {
-      my $id = $result->valid->get('id');
-      my $row = $db->single('memos', {id => $id});
-      my $content = $result->valid->get('memo');
+      my $row = $db->single('todos', {id => $id});
+      my $name = $result->valid->get('name');
       $row->update({
-        'content' => $content
+        'name' => $name
       });
       ["success!"];  
     }
   };
 
-  $c->redirect('/0');
+  $c->redirect('/todos/');
 };
 
-post '/p' => [qw/connect/] => sub {
+post '/todos/new' => [qw/connect/] => sub {
   my ( $self, $c) = @_;
   
   my $result = $c->req->validator([
-    'memo' => {
+    'name' => {
       rule => [
         ['NOT_NULL', 'ENTER SOMETHING!!!'],
       ], 
@@ -139,8 +149,8 @@ post '/p' => [qw/connect/] => sub {
       $result->messages
     }
     else {
-      $db->insert('memos' => {
-        'content' => $result->valid->get('memo'), 
+      $db->insert('todos' => {
+        'name' => $result->valid->get('name'), 
         'created_at' => DateTime->now(time_zone => 'local')
       });
       ["success!"];  

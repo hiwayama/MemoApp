@@ -16,17 +16,17 @@
   : }
 </div>
 : }
-<form method="post" action="<: $c.req.uri_for('/p') :>" class="navbar-form pull-left">
-  <input type="text" name="memo" class="span3" value="" />
+<form method="post" action="<: $c.req.uri_for('/todos/new') :>" class="navbar-form pull-left">
+  <input type="text" name="name" class="span3" value="" />
   <button type="submit" class="btn">Send</button>
 </form>
 <table class="table table-condensed">
   <tbody>
     : for $rows -> $row {
     <tr>
-      <td><: $row.content :></td>
-      <td><a class="btn" href="/todo/<: $row.id :>"><i class="icon-cog"></i></a></td>
-      <td><form method="POST" action="<: $c.req.uri_for('/d'):>" onSubmit="return check()"><input type="hidden" name="id" value="<: $row.id :>" /><button type="submit" class="btn" onSubmit="return check()"><i class="icon-remove"></i></button></form></td>
+      <td><: $row.name :></td>
+      <td><a class="btn" href="/todos/<: $row.id :>"><i class="icon-cog"></i></a></td>
+      <td><form method="POST" action="/todos/<:$row.id:>/delete" onSubmit="return check()"><input type="hidden" name="id" value="<: $row.id :>" /><button type="submit" class="btn" onSubmit="return check()"><i class="icon-remove"></i></button></form></td>
     </tr>
     : }
   </tbody>
