@@ -24,10 +24,13 @@ filter 'connect' => sub {
       connect_info=>[
         "dbi:$db_conf->{database}:$db_conf->{dbname}",
         $db_conf->{user} ,
-        $db_conf->{passwd}
+        $db_conf->{passwd}, 
+        +{
+          mysql_enable_utf8 => 1
+        }
       ]
     );
-    
+
     $app->($self, $c);
   }  
 };
@@ -41,6 +44,7 @@ filter 'todo_list' => sub {
     my $page = $c->req->param("page") || 1;
 
     my $db = $c->stash->{db};
+
     $c->stash->{page} = $page;
     $c->stash->{rows} = $db->all($page-1);
 
@@ -65,7 +69,7 @@ get '/todos.json' => [qw/connect todo_list/] => sub {
   my @todos = map {
     id    => $_->id, 
     name  => $_->name,
-    content   => $_->content, 
+    comment   => $_->comment, 
     is_done   => $_->is_done, 
     deadline  => $_->deadline, 
   }, @$rows;
@@ -73,16 +77,45 @@ get '/todos.json' => [qw/connect todo_list/] => sub {
   $c->render_json(\@todos);
 };
 
-get '/todos/:id' =>[qw/connect/] => sub {
+
+filter 'detail' => sub {
+  my $app = shift;
+
+  sub {
+    my ($self, $c) = @_;
+
+    my $db = $c->stash->{db};
+
+    my $id = $c->args->{id};
+
+    # TODO id がinvalidだったら戻らせる
+
+    my $row = $db->single('todos', {id => $id});
+
+    $c->stash->{row} = $row;
+    
+    $app->($self, $c);
+  }
+};
+
+get '/todos/:id.json' => [qw/connect detail/] => sub {
   my ( $self, $c )  = @_;
   
-  my $db = $c->stash->{db};
+  my $row = $c->stash->{row};
 
-  my $id = $c->args->{id};
+  my $todo = +{
+    id => $row->id.
+    name => $row->name, 
+    comment => $row->comment, 
+    deadline => $row->deadline
+  };
 
-  # TODO idがinvalidだったら戻らせる
+  $c->render_json(todo => $todo );
+};
+get '/todos/:id/' =>[qw/connect detail/] => sub {
+  my ( $self, $c )  = @_;
   
-  my $row = $db->single('todos', {id => $id});
+  my $row = $c->stash->{row};
 
   $c->render('detail.tx',
     { row => $row } 
@@ -106,28 +139,20 @@ post '/todos/:id/update' => [qw/connect/] => sub {
  
   my $id = $c->args->{id};
 
-  my $result = $c->req->validator([
-    'name' => {
-      rule => [
-        ['NOT_NULL', 'ENTER SOMETHING!!!'],
-      ], 
-    }
-  ]);
-
   my $db = $c->stash->{db};
-  my $messages =  do {
-    if($result->has_error) {
-      $result->messages
-    }
-    else {
-      my $row = $db->single('todos', {id => $id});
-      my $name = $result->valid->get('name');
-      $row->update({
-        'name' => $name
-      });
-      ["success!"];  
-    }
-  };
+  my $row = $db->single('todos', {id => $id});
+  
+  my $name = $c->req->param('name') || $row->name;
+  my $comment = $c->req->param('comment') || $row->comment;
+  my $deadline = $c->req->param('deadline') || $row->deadline;
+  my $is_done = $c->req->param('is_done');
+
+  $row->update({
+    'name' => $name, 
+    'comment' => $comment, 
+    'deadline' => $deadline, 
+    'is_done' => $is_done, 
+  });
 
   $c->redirect('/todos/');
 };

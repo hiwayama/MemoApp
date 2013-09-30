@@ -9,7 +9,7 @@ sub create_table {
       `id` INT NOT NULL AUTO_INCREMENT, 
       `name` TEXT NOT NULL,
       `deadline` DATETIME,
-      `content` TEXT,  
+      `comment` TEXT,  
       `is_done` BOOLEAN NOT NULL DEFAULT FALSE, 
       `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
       `created_at` TIMESTAMP NOT NULL, 

@@ -1,6 +1,6 @@
 : cascade base with helper
 : around content -> {
-<script>  
+<script> 
   function check() {
     if(window.confirm('削除してもよろしいですか？')){
       return true;
@@ -8,6 +8,21 @@
       return false;
     }
   } 
+
+  function done(id) {
+    var is_done = $("#done"+id+":checked").val() ? 1 : 0;
+    $.ajax({
+      type: "POST", 
+      url: "/todos/"+id+"/update", 
+      data: {
+        name: name, 
+        is_done: is_done, 
+        deadline: deadline, 
+        comment: comment, 
+      }
+    });
+  }
+
 </script>
 : if($messages) {
 <div class="alert">
@@ -17,15 +32,16 @@
 </div>
 : }
 <form method="post" action="<: $c.req.uri_for('/todos/new') :>" class="navbar-form pull-left">
-  <input type="text" name="name" class="span3" value="" />
+  <input type="text" id="name" class="span3" value="" />
   <button type="submit" class="btn">Send</button>
 </form>
 <table class="table table-condensed">
   <tbody>
     : for $rows -> $row {
     <tr>
+      <td id="todo"><input id="done<:$row.id:>"  onclick="done($row.id :>)" type="checkbox" <: 'checked' if $row.is_done:> /></td>
       <td><: $row.name :></td>
-      <td><a class="btn" href="/todos/<: $row.id :>"><i class="icon-cog"></i></a></td>
+      <td><a class="btn" href="/todos/<: $row.id :>/"><i class="icon-cog"></i></a></td>
       <td><form method="POST" action="/todos/<:$row.id:>/delete" onSubmit="return check()"><input type="hidden" name="id" value="<: $row.id :>" /><button type="submit" class="btn" onSubmit="return check()"><i class="icon-remove"></i></button></form></td>
     </tr>
     : }
