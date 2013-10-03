@@ -35,6 +35,12 @@ filter 'connect' => sub {
   }  
 };
 
+# ---------------------- #
+# 一覧表示
+#
+# /todos/
+# /todos.json
+# ---------------------- #
 filter 'todo_list' => sub {
   my $app = shift;
 
@@ -78,6 +84,10 @@ get '/todos.json' => [qw/connect todo_list/] => sub {
 };
 
 
+# ------------------- #
+# 個別詳細表示
+#
+# ------------------- #
 filter 'detail' => sub {
   my $app = shift;
 
@@ -123,6 +133,10 @@ get '/todos/:id/' =>[qw/connect detail/] => sub {
 };
 
 
+# ------------------ #
+# 個別削除
+#
+# ------------------ #
 post '/todos/:id/delete' => [qw/connect/] => sub {
   my ($self, $c) = @_;
 
@@ -134,6 +148,10 @@ post '/todos/:id/delete' => [qw/connect/] => sub {
   $c->redirect('/todos/'); 
 };
 
+# -------------------- #
+# 個別更新
+#
+# -------------------- #
 post '/todos/:id/update' => [qw/connect/] => sub {
   my ( $self, $c) = @_;
  
@@ -157,32 +175,27 @@ post '/todos/:id/update' => [qw/connect/] => sub {
   $c->redirect('/todos/');
 };
 
+
+# -------------------- #
+# 新規作成
+#
+# -------------------- #
 post '/todos/new' => [qw/connect/] => sub {
   my ( $self, $c) = @_;
   
-  my $result = $c->req->validator([
-    'name' => {
-      rule => [
-        ['NOT_NULL', 'ENTER SOMETHING!!!'],
-      ], 
-    }
-  ]);
+  my $name = $c->req->param('name');
+  my $comment = $c->req->param('comment');
+  my $deadline = $c->req->param('deadline');
 
   my $db = $c->stash->{db};
-  my $messages =  do {
-    if($result->has_error) {
-      $result->messages
-    }
-    else {
-      $db->insert('todos' => {
-        'name' => $result->valid->get('name'), 
-        'created_at' => DateTime->now(time_zone => 'local')
-      });
-      ["success!"];  
-    }
-  };
+  $db->insert('todos' => {
+    'name' => $name,
+    'deadline' => $deadline, 
+    'comment' => $comment,  
+    'created_at' => DateTime->now(time_zone => 'local')
+  });
   my $rows = $db->all();
-
+  my $messages = ["success!!"];
   $c->render('index.tx', {
     rows=>$rows, messages => $messages, page=>0
   });
