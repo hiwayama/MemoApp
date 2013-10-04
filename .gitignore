@@ -1,4 +1,6 @@
 .DS_Store
-memo.db
 lackup.sh
 conf.perl
+local/
+cpanfile.snapshot
+
