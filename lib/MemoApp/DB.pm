@@ -18,9 +18,24 @@ sub create_table {
   });
 }
 
+# arrayに変換して返す.
+# $queryを与えることでnameのLIKE検索が可能
+sub find {
+  my ($self, $query, $page) = @_;
+
+  return () if $page<0;
+  
+  my $limit = 10;
+
+  return $self->search('todos', 
+    ['name', {'like' => '%'.$query.'%'}], 
+    {offset=>$page*$limit, limit=>$limit, order_by => 'deadline'}
+  )->all;
+}
+
 # arrayに変換して返す
 # deadlineの降順
-sub all {
+sub find_all {
   my ($self, $page) = @_;
   
   if($page<0){

@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use utf8;
 use Kossy;
+use JSON;
 use MemoApp::DB;
 use DateTime;
 use Data::Dumper;
@@ -26,7 +27,7 @@ filter 'connect' => sub {
         $db_conf->{user} ,
         $db_conf->{passwd}, 
         +{
-          mysql_enable_utf8 => 1
+          'mysql_enable_utf8' => 1
         }
       ]
     );
@@ -48,11 +49,21 @@ filter 'todo_list' => sub {
     my ($self, $c) = @_;
 
     my $page = $c->req->param("page") || 1;
+    my $q   = $c->req->param("q");
 
     my $db = $c->stash->{db};
 
     $c->stash->{page} = $page;
-    my $todos = $db->all($page-1);
+    
+    my $todos = do {
+      if(defined($q)) { 
+        $db->find($q, $page-1);
+      } else {
+        $db->find_all($page-1);
+      }
+    };
+
+#    my $todos = $db->all($page-1);
 
     my @todos = map {
       id    => $_->id, 
@@ -104,14 +115,14 @@ filter 'detail' => sub {
     # TODO id がinvalidだったら戻らせる
 
     my $row = $db->single('todos', {id => $id});
-
+    
     my $todo = +{
       id        => $row->id, 
       name      => $row->name, 
       comment   => $row->comment, 
       deadline  => $row->deadline
     };
-    
+  
     $c->stash->{todo} = $todo;
     
     $app->($self, $c);
@@ -122,7 +133,7 @@ get '/todos/:id.json' => [qw/connect detail/] => sub {
 
   my $todo = $c->stash->{todo};
 
-  $c->render_json({todo => $todo });
+  $c->render_json({todo => $todo});
 };
 get '/todos/:id/' =>[qw/connect detail/] => sub {
   my ( $self, $c )  = @_;
@@ -196,7 +207,7 @@ post '/todos/new' => [qw/connect/] => sub {
     'comment' => $comment,  
     'created_at' => DateTime->now(time_zone => 'local')
   });
-  my $rows = $db->all();
+  my $rows = $db->find_all();
   my $messages = ["success!!"];
   $c->render('index.tx', {
     rows=>$rows, messages => $messages, page=>0
