@@ -52,7 +52,17 @@ filter 'todo_list' => sub {
     my $db = $c->stash->{db};
 
     $c->stash->{page} = $page;
-    $c->stash->{rows} = $db->all($page-1);
+    my $todos = $db->all($page-1);
+
+    my @todos = map {
+      id    => $_->id, 
+      name  => $_->name,
+      comment   => $_->comment, 
+      is_done   => $_->is_done, 
+      deadline  => $_->deadline, 
+    }, @$todos;
+
+    $c->stash->{todos} = \@todos;
 
     $app->($self, $c);
   }
@@ -61,26 +71,19 @@ filter 'todo_list' => sub {
 get '/todos/' => [qw/connect todo_list/] => sub {
   my ( $self, $c )  = @_;
 
-  my $rows = $c->stash->{rows};
+  my $todos = $c->stash->{todos};
   my $page = $c->stash->{page};
   $c->render('index.tx', 
-    { rows => $rows , page => $page}
+    { rows => $todos , page => $page}
   );
 };
 get '/todos.json' => [qw/connect todo_list/] => sub {
   my ( $self, $c )  = @_;
 
-  my $rows = $c->stash->{rows};
+  my $page = $c->stash->{page};
+  my $todos = $c->stash->{todos};
 
-  my @todos = map {
-    id    => $_->id, 
-    name  => $_->name,
-    comment   => $_->comment, 
-    is_done   => $_->is_done, 
-    deadline  => $_->deadline, 
-  }, @$rows;
-
-  $c->render_json(\@todos);
+  $c->render_json({todos=>$todos, page=>$page});
 };
 
 
@@ -102,33 +105,32 @@ filter 'detail' => sub {
 
     my $row = $db->single('todos', {id => $id});
 
-    $c->stash->{row} = $row;
+    my $todo = +{
+      id        => $row->id, 
+      name      => $row->name, 
+      comment   => $row->comment, 
+      deadline  => $row->deadline
+    };
+    
+    $c->stash->{todo} = $todo;
     
     $app->($self, $c);
   }
 };
-
 get '/todos/:id.json' => [qw/connect detail/] => sub {
   my ( $self, $c )  = @_;
-  
-  my $row = $c->stash->{row};
 
-  my $todo = +{
-    id => $row->id.
-    name => $row->name, 
-    comment => $row->comment, 
-    deadline => $row->deadline
-  };
+  my $todo = $c->stash->{todo};
 
-  $c->render_json(todo => $todo );
+  $c->render_json({todo => $todo });
 };
 get '/todos/:id/' =>[qw/connect detail/] => sub {
   my ( $self, $c )  = @_;
-  
-  my $row = $c->stash->{row};
+ 
+  my $todo = $c->stash->{todo};
 
   $c->render('detail.tx',
-    { row => $row } 
+    { todo => $todo } 
   );
 };
 

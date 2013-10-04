@@ -18,7 +18,8 @@ sub create_table {
   });
 }
 
-# arrayに変換
+# arrayに変換して返す
+# deadlineの降順
 sub all {
   my ($self, $page) = @_;
   
@@ -29,7 +30,7 @@ sub all {
   my $limit = 10;
   
   return $self->search('todos', {}, 
-      {limit=>$limit, offset=>$page*$limit, order_by => 'id'}
+      {limit=>$limit, offset=>$page*$limit, order_by => 'deadline'}
     )->all;
 }
 

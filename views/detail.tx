@@ -1,9 +1,9 @@
 : cascade base 
 : around content -> {
-<form method="post" action="/todos/<:$row.id:>/update">
-  name : <input type="text" name="name" class="span3" value="<: $row.name :>" /><br />
-  comment : <input type="text" name="comment" value="<: $row.comment :>"><br />
-  deadline : <input type="text" name="deadline" value="<: $row.deadline :>"><br />
+<form method="post" action="/todos/<: $todo.id :>/update">
+  name : <input type="text" name="name" class="span3" value="<: $todo.name :>" /><br />
+  comment : <input type="text" name="comment" value="<: $todo.comment :>"><br />
+  deadline : <input type="text" name="deadline" value="<: $todo.deadline :>"><br />
   <button type="submit" class="btn">編集</button>
 </form>
 : }
